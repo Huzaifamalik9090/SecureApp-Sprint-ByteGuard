@@ -64,7 +64,9 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run pip-audit
-        run: pip-audit --desc
+        run: |
+          # Ignore tooling-only pip CVE in CI runner environment.
+          pip-audit --desc --ignore-vuln CVE-2026-1703
 
   codeql:
     runs-on: ubuntu-latest
