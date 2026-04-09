@@ -1,10 +1,20 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Register</h2>
+<h2>Create Account</h2>
+<p class="meta">Join ByteGuard Secure Blog in a few seconds.</p>
 <form method="post">
     {{ form.hidden_tag() }}
-    <p>{{ form.username.label }} {{ form.username() }}</p>
-    <p>{{ form.password.label }} {{ form.password() }}</p>
-    <p>{{ form.submit() }}</p>
+    <div class="form-field">
+        {{ form.username.label }}
+        {{ form.username(placeholder="Choose username") }}
+    </div>
+    <div class="form-field">
+        {{ form.password.label }}
+        {{ form.password(placeholder="Choose strong password") }}
+    </div>
+    <div style="display:flex; gap:0.6rem; align-items:center;">
+        {{ form.submit(class_="btn") }}
+        <a class="btn btn-outline" href="{{ url_for('auth.login') }}">Already registered?</a>
+    </div>
 </form>
 {% endblock %}

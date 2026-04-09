@@ -34,7 +34,13 @@ def create_app() -> Flask:
     @app.after_request
     def set_security_headers(response):
         response.headers["X-Frame-Options"] = "DENY"
-        response.headers["Content-Security-Policy"] = "frame-ancestors 'none'; default-src 'self';"
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "style-src 'self' 'unsafe-inline'; "
+            "script-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data:; "
+            "frame-ancestors 'none';"
+        )
         return response
 
     from .auth_routes import auth_bp  # noqa: WPS433

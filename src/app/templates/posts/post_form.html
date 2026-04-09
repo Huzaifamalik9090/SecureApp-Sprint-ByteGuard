@@ -1,10 +1,35 @@
 {% extends "base.html" %}
 {% block content %}
 <h2>{{ title }}</h2>
-<form method="post">
+<p class="meta">Write clearly and keep content meaningful. Your post is protected with CSRF and ownership checks.</p>
+
+<form method="post" id="post-form">
     {{ form.hidden_tag() }}
-    <p>{{ form.title.label }} {{ form.title() }}</p>
-    <p>{{ form.content.label }} {{ form.content(rows=8, cols=50) }}</p>
-    <p>{{ form.submit() }}</p>
+    <div class="form-field">
+        {{ form.title.label }}
+        {{ form.title(placeholder="Enter a clear post title") }}
+    </div>
+    <div class="form-field">
+        {{ form.content.label }}
+        {{ form.content(rows=8, cols=50, id="content-field", placeholder="Share your thoughts...") }}
+        <p id="char-count" class="meta">0 characters</p>
+    </div>
+    <div style="display:flex; gap:0.6rem; align-items:center;">
+        {{ form.submit(class_="btn") }}
+        <a class="btn btn-outline" href="{{ url_for('posts.index') }}">Cancel</a>
+    </div>
 </form>
+
+<script>
+    const contentField = document.getElementById("content-field");
+    const charCount = document.getElementById("char-count");
+    function updateCharCount() {
+        if (!contentField || !charCount) return;
+        charCount.textContent = contentField.value.length + " characters";
+    }
+    if (contentField) {
+        contentField.addEventListener("input", updateCharCount);
+        updateCharCount();
+    }
+</script>
 {% endblock %}

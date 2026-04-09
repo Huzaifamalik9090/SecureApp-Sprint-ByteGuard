@@ -1,21 +1,156 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Posts</h2>
-{% for post in posts %}
-<article>
-    <h3>{{ post.title }}</h3>
-    <p>{{ post.content }}</p>
-    <small>Owner ID: {{ post.owner_id }}</small>
-    {% if current_user.is_authenticated and current_user.id == post.owner_id %}
-        <p>
-            <a href="{{ url_for('posts.edit_post', post_id=post.id) }}">Edit</a>
-        </p>
-        <form method="post" action="{{ url_for('posts.delete_post', post_id=post.id) }}">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit">Delete</button>
-        </form>
+<style>
+    .hero { display: flex; align-items: end; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+    .hero h2 { margin: 0 0 0.2rem 0; }
+    .muted { color: #9ca3af; margin: 0; }
+    .search-wrap { margin: 0.9rem 0 0.4rem; }
+    .toolbar { display:flex; flex-wrap:wrap; gap:0.55rem; margin: 0.65rem 0 1rem; }
+    .chip {
+        border: 1px solid #374151;
+        background: #0b1220;
+        color: #e5e7eb;
+        border-radius: 999px;
+        padding: 0.32rem 0.7rem;
+        font-size: 0.84rem;
+        cursor: pointer;
+    }
+    .chip.active { border-color: #22c55e; color: #22c55e; }
+    .posts-grid { display: grid; grid-template-columns: 1fr; gap: 0.8rem; }
+    .post-card {
+        border: 1px solid #374151;
+        border-radius: 12px;
+        background: #111827;
+        padding: 0.9rem;
+    }
+    .post-head { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+    .post-head h3 { margin: 0; }
+    .post-meta { color: #9ca3af; font-size: 0.86rem; }
+    .actions { display: flex; gap: 0.5rem; margin-top: 0.7rem; }
+    .hidden { display: none !important; }
+    .badge {
+        border: 1px solid #374151;
+        background: #0b1220;
+        border-radius: 999px;
+        color: #9ca3af;
+        padding: 0.2rem 0.55rem;
+        font-size: 0.78rem;
+    }
+</style>
+
+<section class="hero">
+    <div>
+        <h2>Posts Feed</h2>
+        <p class="muted">Explore latest posts with secure access controls.</p>
+    </div>
+    {% if current_user.is_authenticated %}
+        <a class="btn" href="{{ url_for('posts.create_post') }}">+ Create Post</a>
     {% endif %}
-</article>
-<hr>
-{% endfor %}
+</section>
+
+<div class="search-wrap">
+    <input id="post-search" type="text" placeholder="Search posts by title or content...">
+    <p id="post-count" class="meta">Showing {{ posts|length }} post(s)</p>
+</div>
+<div class="toolbar">
+    <button class="chip active" id="filter-all" type="button">All Posts</button>
+    <button class="chip" id="filter-mine" type="button">My Posts</button>
+    <button class="chip" id="sort-new" type="button">Newest First</button>
+    <button class="chip" id="sort-old" type="button">Oldest First</button>
+</div>
+
+<section id="posts-grid" class="posts-grid">
+    {% for post in posts %}
+    <article class="post-card searchable-post" data-owner="{{ post.owner_id }}" data-id="{{ post.id }}">
+        <div class="post-head">
+            <h3>{{ post.title }}</h3>
+            <span class="badge">Post #{{ post.id }}</span>
+        </div>
+        <p>{{ post.content }}</p>
+        <p class="post-meta">Owner ID: {{ post.owner_id }}</p>
+        {% if current_user.is_authenticated and current_user.id == post.owner_id %}
+            <div class="actions">
+                <a class="btn btn-outline" href="{{ url_for('posts.edit_post', post_id=post.id) }}">Edit</a>
+                <form method="post" action="{{ url_for('posts.delete_post', post_id=post.id) }}" data-confirm-delete="true">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button class="btn btn-danger" type="submit">Delete</button>
+                </form>
+            </div>
+        {% endif %}
+    </article>
+    {% else %}
+    <article class="post-card">
+        <h3>No posts yet</h3>
+        <p class="post-meta">Create the first secure post to get started.</p>
+    </article>
+    {% endfor %}
+</section>
+
+<script>
+    const searchInput = document.getElementById("post-search");
+    const cards = Array.from(document.querySelectorAll(".searchable-post"));
+    const countEl = document.getElementById("post-count");
+    const postsGrid = document.getElementById("posts-grid");
+    const filterAllBtn = document.getElementById("filter-all");
+    const filterMineBtn = document.getElementById("filter-mine");
+    const sortNewBtn = document.getElementById("sort-new");
+    const sortOldBtn = document.getElementById("sort-old");
+    const currentUserId = "{{ current_user.id if current_user.is_authenticated else 0 }}";
+    let mode = "all";
+
+    function updateFilterButtons() {
+        filterAllBtn.classList.toggle("active", mode === "all");
+        filterMineBtn.classList.toggle("active", mode === "mine");
+    }
+
+    function filterPosts() {
+        const query = (searchInput.value || "").toLowerCase().trim();
+        let visible = 0;
+        cards.forEach((card) => {
+            const text = card.innerText.toLowerCase();
+            const owner = card.dataset.owner;
+            const ownerMatch = mode === "all" || owner === currentUserId;
+            const match = text.includes(query) && ownerMatch;
+            card.classList.toggle("hidden", !match);
+            if (match) visible += 1;
+        });
+        countEl.textContent = "Showing " + visible + " post(s)";
+    }
+
+    function sortCards(direction) {
+        const sorted = [...cards].sort((a, b) => {
+            const idA = Number(a.dataset.id);
+            const idB = Number(b.dataset.id);
+            return direction === "new" ? idB - idA : idA - idB;
+        });
+        sorted.forEach((card) => postsGrid.appendChild(card));
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener("input", filterPosts);
+    }
+    if (filterAllBtn) {
+        filterAllBtn.addEventListener("click", () => {
+            mode = "all";
+            updateFilterButtons();
+            filterPosts();
+        });
+    }
+    if (filterMineBtn) {
+        filterMineBtn.addEventListener("click", () => {
+            mode = "mine";
+            updateFilterButtons();
+            filterPosts();
+        });
+    }
+    if (sortNewBtn) {
+        sortNewBtn.addEventListener("click", () => sortCards("new"));
+    }
+    if (sortOldBtn) {
+        sortOldBtn.addEventListener("click", () => sortCards("old"));
+    }
+    updateFilterButtons();
+    sortCards("new");
+    filterPosts();
+</script>
 {% endblock %}
