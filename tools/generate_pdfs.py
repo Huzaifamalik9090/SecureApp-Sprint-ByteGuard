@@ -208,7 +208,8 @@ def write_pdf(title: str, markdown_text: str, output: Path):
 
 def main():
     threat_md = ROOT / "threat-model" / "THREAT_MODEL.md"
-    final_md = ROOT / "docs" / "Final_Report_ByteGuard.md"
+    full_final_md = ROOT / "docs" / "Final_Report_ByteGuard_FULL.md"
+    final_md = full_final_md if full_final_md.exists() else (ROOT / "docs" / "Final_Report_ByteGuard.md")
     threat_pdf = ROOT / "THREAT_MODEL.pdf"
     final_pdf = ROOT / "Final_Report_ByteGuard.pdf"
 
