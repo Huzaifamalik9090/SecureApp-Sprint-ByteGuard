@@ -30,3 +30,5 @@ Team workflow, engineering insights, and limitations.
 
 ## 8. Conclusion and Future Enhancements
 Security maturity improvements for next release.
+
+Update: Added final submission checklist note.
