@@ -38,3 +38,5 @@ Pipeline fails if any required job fails (tests, SAST, dependency audit, CodeQL)
 - Attach screenshots of failing attack attempt (IDOR/CSRF).
 - Attach response headers screenshot for clickjacking controls.
 - Attach GitHub Actions run summary screenshots.
+
+Update: Added CI test evidence section note.

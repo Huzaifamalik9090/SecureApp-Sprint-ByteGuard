@@ -29,3 +29,5 @@
 - Password hashing using Werkzeug secure hash utilities.
 - Input validation via WTForms validators.
 - CI/CD integration for automated checks.
+
+Update: Added implementation verification note.

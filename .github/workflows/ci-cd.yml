@@ -87,3 +87,32 @@ jobs:
 
       - name: Analyze
         uses: github/codeql-action/analyze@v3
+
+  dast-zap:
+    runs-on: ubuntu-latest
+    needs: build-test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build app image
+        run: docker build -t byteguard-app .
+
+      - name: Start app container
+        run: docker run -d --name byteguard-app --network host byteguard-app
+
+      - name: Wait for app
+        run: |
+          for i in {1..20}; do
+            if curl -sSf http://127.0.0.1:5000 > /dev/null; then
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "App did not start in time"
+          exit 1
+
+      - name: Run OWASP ZAP baseline
+        run: |
+          docker run --rm --network host ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py -t http://127.0.0.1:5000 -I -m 3

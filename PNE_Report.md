@@ -42,3 +42,5 @@ ByteGuard developed a secure Flask-based blog platform where users can register,
 
 - CLO-5: Vulnerability analysis and mitigation was performed.
 - CLO-6: Team-based secure software development workflow was implemented.
+
+Update: Reviewed by ByteGuard team for PR evidence.
